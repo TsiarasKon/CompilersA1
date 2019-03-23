@@ -23,18 +23,20 @@ class XorAndEval {
     }
 
     private int T_exp() throws IOException, ParseError {
-    	// TODO: add parenthesis
 		int term = T_term();
-		return term;//T_xor(term);
+		return T_xor(term);
     }
 
-//	private int T_xor(int term) throws IOException, ParseError {
-//		if (lookaheadToken < '0' || lookaheadToken > '9')
-//			throw new ParseError();
-//		int num = evalDigit(lookaheadToken);
-//		consume(lookaheadToken);
-//		return T_term(num);
-//	}
+    private int T_xor(int term) throws IOException, ParseError {
+        if (lookaheadToken == '\n' || lookaheadToken == -1)
+            return term;
+        if (lookaheadToken != '^')
+            throw new ParseError();
+        consume(lookaheadToken);
+        int rightNum = T_term();
+        int rightPart = T_xor(rightNum);
+        return term ^ rightPart;
+    }
 
 	private int T_term() throws IOException, ParseError {
 		int factor = T_factor();
@@ -42,10 +44,8 @@ class XorAndEval {
 	}
 
 	private int T_and(int term) throws IOException, ParseError {
-		if (lookaheadToken == '\n' || lookaheadToken == -1)
-			return term;
 		if (lookaheadToken != '&')
-			throw new ParseError();
+            return term;
 		consume(lookaheadToken);
 		int rightNum = T_factor();
 		int rightPart = T_and(rightNum);
@@ -60,18 +60,6 @@ class XorAndEval {
 		consume(lookaheadToken);
 		return num;
 	}
-
-//    private int T_factor(int cond) throws IOException, ParseError {
-//		if (lookaheadToken == ':' || lookaheadToken == '\n' || lookaheadToken == -1)
-//			return cond;
-//		if (lookaheadToken != '?')
-//			throw new ParseError();
-//		consume('?');
-//		int thenPart = T_exp();
-//		consume(':');
-//		int elsePart = T_exp();
-//		return cond != 0 ? thenPart : elsePart;
-//    }
 
     public int eval() throws IOException, ParseError {
 		int rv = T_exp();
