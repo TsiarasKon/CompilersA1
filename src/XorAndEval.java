@@ -4,7 +4,6 @@ import java.io.InputStream;
 class XorAndEval {
 
     private int lookaheadToken;
-
     private InputStream in;
 
     public XorAndEval(InputStream in) throws IOException {
@@ -19,7 +18,7 @@ class XorAndEval {
     }
 
     private int evalDigit(int digit){
-	return digit - '0';
+		return digit - '0';
     }
 
     private int T_exp() throws IOException, ParseError {
@@ -28,10 +27,8 @@ class XorAndEval {
     }
 
     private int T_xor(int term) throws IOException, ParseError {
-        if (lookaheadToken == '\n' || lookaheadToken == -1)
-            return term;
         if (lookaheadToken != '^')
-            throw new ParseError();
+            return term;
         consume(lookaheadToken);
         int rightNum = T_term();
         int rightPart = T_xor(rightNum);
@@ -53,12 +50,19 @@ class XorAndEval {
 	}
 
 	private int T_factor() throws IOException, ParseError {
-		// TODO: add parenthesis
-		if (lookaheadToken < '0' || lookaheadToken > '9')
-			throw new ParseError();
-		int num = evalDigit(lookaheadToken);
-		consume(lookaheadToken);
-		return num;
+		if (lookaheadToken == '(') {
+            consume(lookaheadToken);
+            int num = T_exp();
+            if (lookaheadToken != ')')
+                throw new ParseError();
+            consume(lookaheadToken);
+            return num;
+        } else if (lookaheadToken >= '0' && lookaheadToken <= '9') {
+            int num = evalDigit(lookaheadToken);
+            consume(lookaheadToken);
+            return num;
+        }
+		throw new ParseError();
 	}
 
     public int eval() throws IOException, ParseError {
@@ -73,22 +77,20 @@ class XorAndEval {
 			XorAndEval evaluate = new XorAndEval(System.in);
 			System.out.println(evaluate.eval());
 		}
-		catch (IOException e) {
+		catch (IOException | ParseError e) {
 			System.err.println(e.getMessage());
 		}
-		catch(ParseError err){
-			System.err.println(err.getMessage());
-		}
     }
+
 }
 
-/* CFG:
+/* LL(1) grammar:
 	exp    -> term xor
 	xor    -> ^ term xor
 		    | e
 	term   -> factor and
 	and    -> & factor and
 		 	| e
-	factor -> 0|1|2|3|4|5|6|7|8|9
+	factor -> 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 			| (exp)
  */
